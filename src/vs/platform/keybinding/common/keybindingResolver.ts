@@ -179,7 +179,7 @@ export class KeybindingResolver {
     	return result.sort((a, b) => {
 			const priorityA = a.isDefault ? (a.extensionId === 'pearai.pearai' ? 2 : 1) : 3;
 			const priorityB = b.isDefault ? (b.extensionId === 'pearai.pearai' ? 2 : 1) : 3;
-			return priorityB - priorityA;
+			return priorityA - priorityB;
 		});
 	}
 
@@ -223,7 +223,7 @@ export class KeybindingResolver {
 		}
 
 		conflicts.push(item);
-		conflicts.sort((a, b) => this._getKeybindingPriority(b) - this._getKeybindingPriority(a));
+		conflicts.sort((a, b) => this._getKeybindingPriority(a) - this._getKeybindingPriority(b));
 		this._map.set(keypress, conflicts);
 		this._addToLookupMap(item);
 	}
@@ -385,28 +385,18 @@ export class KeybindingResolver {
 	}
 
 	private _findCommand(context: IContext, matches: ResolvedKeybindingItem[]): ResolvedKeybindingItem | null {
-		// matches are already sorted by priority due to _addKeyPress
-		for (const k of matches) {
-			if (KeybindingResolver._contextMatchesRules(context, k.when)) {
-				return k;
+		for (let i = matches.length - 1; i >= 0; i--) {
+			const k = matches[i];
+
+			if (!KeybindingResolver._contextMatchesRules(context, k.when)) {
+				continue;
 			}
+
+			return k;
 		}
+
 		return null;
 	}
-
-	// private _findCommand(context: IContext, matches: ResolvedKeybindingItem[]): ResolvedKeybindingItem | null {
-	// 	for (let i = matches.length - 1; i >= 0; i--) {
-	// 		const k = matches[i];
-
-	// 		if (!KeybindingResolver._contextMatchesRules(context, k.when)) {
-	// 			continue;
-	// 		}
-
-	// 		return k;
-	// 	}
-
-	// 	return null;
-	// }
 
 	private static _contextMatchesRules(context: IContext, rules: ContextKeyExpression | null | undefined): boolean {
 		if (!rules) {
